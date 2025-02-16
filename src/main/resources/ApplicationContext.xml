@@ -7,9 +7,12 @@
           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
 ">
     <bean id="inMemoryBlueprintPersistence" class="edu.eci.arsw.blueprints.persistence.impl.InMemoryBlueprintPersistence"/>
+    <bean id="redundancy" class="edu.eci.arsw.blueprints.filter.impl.Redundancy"/>
+    <bean id="subsampling" class="edu.eci.arsw.blueprints.filter.impl.Subsampling"/>
 
     <!-- Definición del bean GrammarChecker con inyección de dependencias -->
     <bean id="blueprintsServices" class="edu.eci.arsw.blueprints.services.BlueprintsServices">
         <constructor-arg ref="inMemoryBlueprintPersistence"/>
+        <constructor-arg ref="redundancy"/>
     </bean>
 </beans>
