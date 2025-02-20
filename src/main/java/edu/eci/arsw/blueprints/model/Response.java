@@ -1,6 +1,6 @@
 package edu.eci.arsw.blueprints.model;
 
-public class Response<T>{
+public class Response<T> {
     public long code;
     public T description;
 
