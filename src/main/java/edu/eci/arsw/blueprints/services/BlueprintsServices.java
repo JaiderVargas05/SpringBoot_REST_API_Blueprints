@@ -11,8 +11,10 @@ import edu.eci.arsw.blueprints.model.Response;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
+
+import java.util.Map;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,11 +24,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class BlueprintsServices {
     private BlueprintsPersistence bpp;
-    private Filter filterBlueprint;
+    private final Map<String, Filter> filters;
 
-    public BlueprintsServices(BlueprintsPersistence bpp, @Qualifier("redundancy") Filter filterBlueprint) {
+    public BlueprintsServices(BlueprintsPersistence bpp, Map<String, Filter> filters) {
         this.bpp = bpp;
-        this.filterBlueprint = filterBlueprint;
+        this.filters = filters;
     }
 
     public Response<?> addNewBlueprint(Blueprint bp) {
@@ -40,6 +42,10 @@ public class BlueprintsServices {
         return response;
     }
 
+    public Response<?> getBlueprint(String author, String name) {
+        return getBlueprint(author, name, "default");
+    }
+
     /**
      * 
      * @param author blueprint's author
@@ -47,11 +53,12 @@ public class BlueprintsServices {
      * @return the blueprint of the given name created by the given author
      * @throws BlueprintNotFoundException if there is no such blueprint
      */
-    public Response<?> getBlueprint(String author, String name) {
+    public Response<?> getBlueprint(String author, String name, String filter) {
+        Filter filterBlueprint = setFilter(filter);
         Response<?> response;
         try {
             Blueprint bp = this.bpp.getBlueprint(author, name);
-            response = new Response<Blueprint>(200, bp);
+            response = new Response<Blueprint>(200, filterBlueprint.filterBlueprint(bp));
         } catch (BlueprintNotFoundException e) {
             response = new Response<String>(400, e.getMessage());
         }
@@ -59,6 +66,11 @@ public class BlueprintsServices {
     }
 
     public Response<?> getAllBlueprints() {
+        return getAllBlueprints("default");
+    }
+
+    public Response<?> getAllBlueprints(String filter) {
+        Filter filterBlueprint = setFilter(filter);
         Response<?> response;
         try {
             Set<Blueprint> bps = bpp.getAllBluePrints();
@@ -69,13 +81,18 @@ public class BlueprintsServices {
         return response;
     }
 
+    public Response<?> getBlueprintsByAuthor(String author) {
+        return getBlueprintsByAuthor(author);
+    }
+
     /**
      * 
      * @param author blueprint's author
      * @return all the blueprints of the given author
      * @throws BlueprintNotFoundException if the given author doesn't exist
      */
-    public Response<?> getBlueprintsByAuthor(String author) {
+    public Response<?> getBlueprintsByAuthor(String author, String filter) {
+        Filter filterBlueprint = setFilter(filter);
         Response<?> response;
         try {
             Set<Blueprint> bps = this.bpp.getBlueprintsByAuthor(author);
@@ -107,6 +124,8 @@ public class BlueprintsServices {
         }
         return response;
     }
-    
 
+    private Filter setFilter(String filter) {
+        return filters.getOrDefault(filter, filters.get("default"));
+    }
 }

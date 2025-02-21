@@ -26,7 +26,8 @@ public class BluePrintController {
     }
 
     @GetMapping("/get")
-    public ResponseEntity<Response<?>> getBlueprint(@RequestParam String author, @RequestParam String name) {
+    public ResponseEntity<Response<?>> getBlueprint(@RequestParam String author, @RequestParam String name,
+            @RequestParam(value = "filter", defaultValue = "default") String filter) {
         Response<?> response = blueprintServices.getBlueprint(author, name);
         if (response.code != 200)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -34,17 +35,19 @@ public class BluePrintController {
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<Response<?>> getAllBlueprints() {
+    public ResponseEntity<Response<?>> getAllBlueprints(
+            @RequestParam(value = "filter", defaultValue = "default") String filter) {
 
-        Response<?> response = blueprintServices.getAllBlueprints();
+        Response<?> response = blueprintServices.getAllBlueprints(filter);
         if (response.code != 200)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/getByAuthor")
-    public ResponseEntity<Response<?>> getByAuthor(@RequestParam String author) {
-        Response<?> response = blueprintServices.getBlueprintsByAuthor(author);
+    public ResponseEntity<Response<?>> getByAuthor(@RequestParam String author,
+            @RequestParam(value = "filter", defaultValue = "default") String filter) {
+        Response<?> response = blueprintServices.getBlueprintsByAuthor(author, filter);
         if (response.code != 200)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         return ResponseEntity.status(HttpStatus.OK).body(response);
