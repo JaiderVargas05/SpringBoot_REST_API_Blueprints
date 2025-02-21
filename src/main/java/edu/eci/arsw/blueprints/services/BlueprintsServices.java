@@ -82,7 +82,7 @@ public class BlueprintsServices {
     }
 
     public Response<?> getBlueprintsByAuthor(String author) {
-        return getBlueprintsByAuthor(author);
+        return getBlueprintsByAuthor(author,"default");
     }
 
     /**

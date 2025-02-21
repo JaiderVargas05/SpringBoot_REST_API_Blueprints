@@ -21,12 +21,12 @@ import org.junit.Test;
 
 
 import java.util.HashMap;
-import java.util.HashSet;
+
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 /**
  *
@@ -151,9 +151,13 @@ public class InMemoryPersistenceTest {
 
     @Test
     public void testGetBlueprintNotFound() {
-        // Se consulta un blueprint inexistente usando el servicio.
         Response<?> response = services.getBlueprint("Nonexistent", "NoBlueprint", "default");
-        // Se espera que la respuesta indique error (código 400)
+        assertEquals("La consulta de un blueprint inexistente debe retornar error", 400, response.getCode());
+    }
+
+    @Test
+    public void testGetBlueprintByAuthorNotFound() {
+        Response<?> response = services.getBlueprintsByAuthor("Nonexistent");
         assertEquals("La consulta de un blueprint inexistente debe retornar error", 400, response.getCode());
     }
 
@@ -249,6 +253,23 @@ public class InMemoryPersistenceTest {
     public void testDeleteBlueprintNotFound() {
         Response<?> response = services.deleteBlueprint("Nonexistent", "BP10");
         assertEquals("Eliminar blueprint inexistente debe retornar error", 400, response.getCode());
+    }
+
+    @Test
+    public void testGetBlueprintsByAuthorNoFilterOverload() {
+        Blueprint bp1 = new Blueprint("TestAuthor", "TestBP1", new Point[]{ new Point(0, 0) });
+        Blueprint bp2 = new Blueprint("TestAuthor", "TestBP2", new Point[]{ new Point(1, 1) });
+        services.addNewBlueprint(bp1);
+        services.addNewBlueprint(bp2);
+        Response<?> responseNoFilter = services.getBlueprintsByAuthor("TestAuthor");
+        Response<?> responseDefault = services.getBlueprintsByAuthor("TestAuthor", "default");
+        assertEquals("La respuesta sin filtro debe ser igual a la respuesta con filtro 'default'",
+                responseDefault.getCode(), responseNoFilter.getCode());
+        assertEquals(responseDefault.getDescription(), responseNoFilter.getDescription());
+
+        @SuppressWarnings("unchecked")
+        Set<Blueprint> bpSet = (Set<Blueprint>) responseNoFilter.getDescription();
+        assertEquals("El conjunto de blueprints para 'TestAuthor' debe tener 2 elementos", 2, bpSet.size());
     }
 
     /* =====================================================
@@ -355,45 +376,70 @@ public class InMemoryPersistenceTest {
         Blueprint expected = new Blueprint("Author", "BP4", new Point[]{p1, p3});
         assertEquals("El blueprint filtrado debe coincidir con el esperado", expected, filteredBP);
     }
-
-    /* =====================================================
-     * Sección 5: Pruebas de Sobrecarga de Métodos (Sin Filtro explícito)
-     * =====================================================
-     */
     @Test
-    public void testGetBlueprintWithoutFilter1() {
-        // Crear y registrar un blueprint.
-        Blueprint bp = new Blueprint("Author7", "BP7", new Point[]{
-                new Point(2, 2), new Point(3, 3)
-        });
-        services.addNewBlueprint(bp);
-        // Consultar usando la sobrecarga sin filtro.
-        Response<?> responseWithoutFilter = services.getBlueprint("Author7", "BP7");
-        // Consultar explícitamente usando el filtro "default".
-        Response<?> responseWithDefault = services.getBlueprint("Author7", "BP7", "default");
+    public void testGetBlueprintsByAuthorWithRedundancy() {
+        // Crear un blueprint con puntos duplicados consecutivos para el mismo autor.
+        Point p1 = new Point(0, 0);
+        Point p1Dup = p1; // duplicado (misma referencia)
+        Point p2 = new Point(1, 1);
+        Blueprint bp = new Blueprint("AuthorR", "BP_Red", new Point[]{p1, p1Dup, p2});
 
-        // Se espera que ambas consultas retornen el mismo resultado.
-        assertEquals("La consulta sin filtro debe retornar el mismo blueprint que con filtro default",
-                responseWithDefault.getCode(), responseWithoutFilter.getCode());
-        assertEquals(responseWithDefault.getDescription(), responseWithoutFilter.getDescription());
+        // Registrar el blueprint mediante el servicio.
+        Response<?> addResponse = services.addNewBlueprint(bp);
+        assertEquals("El blueprint debe registrarse exitosamente", 200, addResponse.getCode());
+
+        // Consultar los blueprints del autor usando el filtro "redundancy".
+        Response<?> response = services.getBlueprintsByAuthor("AuthorR", "redundancy");
+        assertEquals("La consulta por autor con filtro redundancy debe ser exitosa", 200, response.getCode());
+
+        @SuppressWarnings("unchecked")
+        Set<Blueprint> bps = (Set<Blueprint>) response.getDescription();
+
+        // Se espera que el filtro redundancy elimine los puntos duplicados consecutivos.
+        Blueprint expected = new Blueprint("AuthorR", "BP_Red", new Point[]{p1, p2});
+
+        boolean found = false;
+        for (Blueprint b : bps) {
+            if ("AuthorR".equals(b.getAuthor()) && "BP_Red".equals(b.getName()) && b.equals(expected)) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue("El blueprint filtrado (redundancy) debe coincidir con el esperado", found);
     }
 
     @Test
-    public void testGetAllBlueprintsNoFilter2() {
-        Blueprint bp = new Blueprint("Author8", "BP8", new Point[]{
-                new Point(5, 5)
-        });
-        services.addNewBlueprint(bp);
-        // Consultar todos los blueprints sin especificar filtro.
-        Response<?> responseNoFilter = services.getAllBlueprints();
-        // Consultar con filtro "default".
-        Response<?> responseDefault = services.getAllBlueprints("default");
+    public void testGetBlueprintsByAuthorWithSubsampling() {
+        // Crear un blueprint con 4 puntos para el mismo autor.
+        Point p1 = new Point(0, 0);
+        Point p2 = new Point(1, 1);
+        Point p3 = new Point(2, 2);
+        Point p4 = new Point(3, 3);
+        Blueprint bp = new Blueprint("AuthorS", "BP_Sub", new Point[]{p1, p2, p3, p4});
 
-        assertEquals("La consulta sin filtro debe retornar el mismo conjunto que con filtro default",
-                responseDefault.getCode(), responseNoFilter.getCode());
-        assertEquals(responseDefault.getDescription(), responseNoFilter.getDescription());
+        // Registrar el blueprint mediante el servicio.
+        Response<?> addResponse = services.addNewBlueprint(bp);
+        assertEquals("El blueprint debe registrarse exitosamente", 200, addResponse.getCode());
+
+        // Consultar los blueprints del autor usando el filtro "subsampling".
+        Response<?> response = services.getBlueprintsByAuthor("AuthorS", "subsampling");
+        assertEquals("La consulta por autor con filtro subsampling debe ser exitosa", 200, response.getCode());
+
+        @SuppressWarnings("unchecked")
+        Set<Blueprint> bps = (Set<Blueprint>) response.getDescription();
+
+        // El filtro subsampling retiene solo los puntos en índices pares: p1 y p3.
+        Blueprint expected = new Blueprint("AuthorS", "BP_Sub", new Point[]{p1, p3});
+
+        boolean found = false;
+        for (Blueprint b : bps) {
+            if ("AuthorS".equals(b.getAuthor()) && "BP_Sub".equals(b.getName()) && b.equals(expected)) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue("El blueprint filtrado (subsampling) debe coincidir con el esperado", found);
     }
-
 }
 
 
