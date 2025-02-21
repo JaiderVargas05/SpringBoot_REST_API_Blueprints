@@ -38,14 +38,11 @@ public class InMemoryPersistenceTest {
 
     @Before
     public void setup() {
-        // Se crea la persistencia en memoria.
         InMemoryBlueprintPersistence persistence = new InMemoryBlueprintPersistence();
-        // Se configura el mapa de filtros.
         Map<String, Filter> filters = new HashMap<>();
         filters.put("default", new Default());
         filters.put("redundancy", new Redundancy());
         filters.put("subsampling", new Subsampling());
-        // Se inyectan las dependencias en el servicio.
         services = new BlueprintsServices(persistence, filters);
     }
 
@@ -82,21 +79,18 @@ public class InMemoryPersistenceTest {
         Point p3 = new Point(2, 2);
         Blueprint bp = new Blueprint("Author", "BP1", new Point[]{p1, p2, p3});
         Blueprint filteredBP = defaultFilter.filterBlueprint(bp);
-        // Con el filtro Default se espera que el blueprint no cambie.
         assertEquals(bp, filteredBP);
     }
 
     @Test
     public void testRedundancyFilter() {
         Filter redundancyFilter = new Redundancy();
-        // Se crean puntos duplicados consecutivos (misma referencia)
         Point p1 = new Point(0, 0);
         Point p1_dup = p1;
         Point p3 = new Point(1, 1);
         Point p3_dup = p3;
         Blueprint bp = new Blueprint("Author", "BP2", new Point[]{p1, p1_dup, p3, p3_dup});
         Blueprint filteredBP = redundancyFilter.filterBlueprint(bp);
-        // Se espera que el blueprint filtrado tenga únicamente los puntos p1 y p3.
         Blueprint expected = new Blueprint("Author", "BP2", new Point[]{p1, p3});
         assertEquals(expected, filteredBP);
     }
@@ -124,12 +118,12 @@ public class InMemoryPersistenceTest {
         Blueprint bp = new Blueprint("Author1", "Blueprint1", new Point[]{
                 new Point(0, 0), new Point(10, 10)
         });
-        // Registrar el blueprint mediante el servicio.
+
         Response<?> addResponse = services.addNewBlueprint(bp);
         assertEquals("El blueprint debe registrarse exitosamente", 200, addResponse.getCode());
         assertEquals(bp, addResponse.getDescription());
 
-        // Consultar el blueprint registrado usando el filtro "default".
+
         Response<?> getResponse = services.getBlueprint("Author1", "Blueprint1", "default");
         assertEquals("La consulta del blueprint debe ser exitosa", 200, getResponse.getCode());
         assertEquals(bp, getResponse.getDescription());
@@ -140,11 +134,10 @@ public class InMemoryPersistenceTest {
         Blueprint bp = new Blueprint("Author1", "Blueprint1", new Point[]{
                 new Point(0, 0)
         });
-        // Primer registro exitoso
+
         Response<?> response1 = services.addNewBlueprint(bp);
         assertEquals("El primer registro debe ser exitoso", 200, response1.getCode());
 
-        // Segundo intento de registro duplicado debe retornar error (código 400)
         Response<?> response2 = services.addNewBlueprint(bp);
         assertEquals("El registro duplicado debe retornar error", 400, response2.getCode());
     }
@@ -163,24 +156,22 @@ public class InMemoryPersistenceTest {
 
     @Test
     public void testUpdateBlueprintSuccess() {
-        // Creamos y registramos el blueprint original.
+
         Blueprint bp = new Blueprint("Author5", "BP1", new Point[]{
                 new Point(0, 0)
         });
         Response<?> addResponse = services.addNewBlueprint(bp);
         assertEquals("El blueprint original debe registrarse exitosamente", 200, addResponse.getCode());
 
-        // Se crea el blueprint actualizado con un nuevo punto.
+
         Blueprint updated = new Blueprint("Author5", "BP1", new Point[]{
                 new Point(0, 0), new Point(5, 5)
         });
 
-        // Se actualiza el blueprint a través del servicio.
         Response<?> updateResponse = services.updateBlueprint(updated);
         assertEquals("La actualización debe ser exitosa", 200, updateResponse.getCode());
         assertEquals(updated, updateResponse.getDescription());
 
-        // Se consulta el blueprint actualizado para confirmar el cambio.
         Response<?> getResponse = services.getBlueprint("Author5", "BP1", "default");
         assertEquals("La consulta del blueprint actualizado debe ser exitosa", 200, getResponse.getCode());
         assertEquals(updated, getResponse.getDescription());
@@ -188,7 +179,7 @@ public class InMemoryPersistenceTest {
 
     @Test
     public void testDeleteBlueprintSuccess() {
-        // Se crea y registra un blueprint.
+
         Blueprint bp = new Blueprint("Author6", "BP1", new Point[]{
                 new Point(0, 0)
         });
