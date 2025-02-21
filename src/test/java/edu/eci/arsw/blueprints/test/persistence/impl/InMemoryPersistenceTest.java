@@ -247,6 +247,29 @@ public class InMemoryPersistenceTest {
     }
 
     @Test
+    public void testGetAllBlueprints() {
+        Blueprint bp1 = new Blueprint("Author3", "BP1", new Point[]{
+                new Point(3, 3)
+        });
+        Blueprint bp2 = new Blueprint("Author4", "BP1", new Point[]{
+                new Point(4, 4)
+        });
+
+        services.addNewBlueprint(bp1);
+        services.addNewBlueprint(bp2);
+
+        Response<?> response = services.getAllBlueprints("default");
+        assertEquals("La consulta de todos los blueprints debe ser exitosa", 200, response.getCode());
+
+        @SuppressWarnings("unchecked")
+        Set<Blueprint> allBps = (Set<Blueprint>) response.getDescription();
+        
+        assertTrue("El conjunto debe contener bp1", allBps.contains(bp1));
+        assertTrue("El conjunto debe contener bp2", allBps.contains(bp2));
+        assertEquals("El conjunto debe contener al menos 3 blueprints", 3, allBps.size());
+    }
+
+    @Test
     public void testGetBlueprintsByAuthorNoFilterOverload() {
         Blueprint bp1 = new Blueprint("TestAuthor", "TestBP1", new Point[]{ new Point(0, 0) });
         Blueprint bp2 = new Blueprint("TestAuthor", "TestBP2", new Point[]{ new Point(1, 1) });
