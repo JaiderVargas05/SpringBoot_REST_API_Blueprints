@@ -25,11 +25,14 @@ public class Subsampling implements Filter {
     public Blueprint filterBlueprint(Blueprint blueprint){
         List<Point> points = blueprint.getPoints();
         List<Point> subsamplingPoints = new ArrayList<Point>();
-        for(int i = 0; i < points.size() && (i % 2 == 0); i++){
-            subsamplingPoints.add(points.get(i));
+        for(int i = 0; i < points.size(); i++){
+            if ((i % 2 == 0)){
+                subsamplingPoints.add(points.get(i));    
+            }
         }
         Blueprint filterBlueprint = new Blueprint(blueprint.getAuthor(), blueprint.getName(), subsamplingPoints.toArray(new Point[subsamplingPoints.size()]));
         return filterBlueprint;
     }
+
 
 }

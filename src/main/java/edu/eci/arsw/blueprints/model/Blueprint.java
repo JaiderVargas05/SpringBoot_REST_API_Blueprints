@@ -6,29 +6,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-
 public class Blueprint {
 
-    private String author=null;
-    
-    private List<Point> points=null;
-    
-    private String name=null;
-            
-    public Blueprint(String author,String name,Point[] pnts){
-        this.author=author;
-        this.name=name;
-        points=Arrays.asList(pnts);
+    private String author = null;
+
+    private List<Point> points = null;
+
+    private String name = null;
+
+    public Blueprint(String author, String name, Point[] pnts) {
+        this.author = author;
+        this.name = name;
+        points = Arrays.asList(pnts);
     }
-         
-    public Blueprint(String author, String name){
-        this.name=name;
-        points=new ArrayList<>();
+
+    public Blueprint(String author, String name) {
+        this.name = name;
+        points = new ArrayList<>();
     }
 
     public Blueprint() {
-    }    
-    
+    }
+
     public String getName() {
         return name;
     }
@@ -36,12 +35,12 @@ public class Blueprint {
     public String getAuthor() {
         return author;
     }
-    
+
     public List<Point> getPoints() {
         return points;
     }
-    
-    public void addPoint(Point p){
+
+    public void addPoint(Point p) {
         this.points.add(p);
     }
 
@@ -74,18 +73,16 @@ public class Blueprint {
         if (!Objects.equals(this.name, other.name)) {
             return false;
         }
-        if (this.points.size()!=other.points.size()){
+        if (this.points.size() != other.points.size()) {
             return false;
         }
-        for (int i=0;i<this.points.size();i++){
-            if (this.points.get(i)!=other.points.get(i)){
+        for (int i = 0; i < this.points.size(); i++) {
+            if (this.points.get(i) != other.points.get(i)) {
                 return false;
             }
         }
-        
+
         return true;
     }
-    
-    
-    
+
 }
