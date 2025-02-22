@@ -263,7 +263,7 @@ public class InMemoryPersistenceTest {
 
         @SuppressWarnings("unchecked")
         Set<Blueprint> allBps = (Set<Blueprint>) response.getDescription();
-        
+
         assertTrue("El conjunto debe contener bp1", allBps.contains(bp1));
         assertTrue("El conjunto debe contener bp2", allBps.contains(bp2));
         assertEquals("El conjunto debe contener al menos 3 blueprints", 3, allBps.size());
